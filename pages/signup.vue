@@ -17,7 +17,10 @@
           @change="checkUsername()"
         />
         <b-form-invalid-feedback :state="usernameOk">
-          <p v-if="usernameTooShort">
+          <p v-if="!usernameIsValidForm">
+            Your username can only contain numbers, lowercase, and uppercase letters.
+          </p>
+          <p v-else-if="usernameTooShort">
             Your username cannot be shorter than 4 characters.
           </p>
           <p v-else-if="usernameTooLong">
@@ -45,7 +48,10 @@
           placeholder="Enter Password"
         />
         <b-form-invalid-feedback :state="passwordOk">
-          <p v-if="passwordTooLong">
+          <p v-if="passwordTooShort">
+            Your password must be at least 8 characters long.
+          </p>
+          <p v-else-if="passwordTooLong">
             Your password cannot be longer than 71 characters.
           </p>
         </b-form-invalid-feedback>
@@ -119,6 +125,9 @@ export default {
     }
   },
   computed: {
+    usernameIsValidForm() {
+      return /^[a-zA-Z0-9]+$/.test(this.username)
+    },
     usernameTooShort() {
       return this.username.length < 4
     },
@@ -127,17 +136,20 @@ export default {
     },
     usernameOk() {
       if (this.username.length === 0) return null
-      return !this.usernameTooShort && !this.usernameTooLong && !this.usernameClash
+      return this.usernameIsValidForm && !this.usernameTooShort && !this.usernameTooLong && !this.usernameClash
     },
     passwordsMatch() {
       return this.password === this.passwordConfirmation
+    },
+    passwordTooShort() {
+      return this.password.length < 8
     },
     passwordTooLong() {
       return this.password.length > 71
     },
     passwordOk() {
       if (this.password.length === 0) return null
-      return !this.passwordTooLong
+      return !this.passwordTooShort && !this.passwordTooLong
     },
     passwordConfirmationOk() {
       if (this.passwordConfirmation.length === 0) return null
@@ -156,6 +168,8 @@ export default {
   },
   methods: {
     checkUsername() {
+      this.usernameClash = false
+
       if (!this.usernameOk) {
         return
       }

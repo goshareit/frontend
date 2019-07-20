@@ -1,4 +1,1 @@
-export default () => ({
-  lastData: {},
-  lastError: {}
-})
+export default () => ({})
