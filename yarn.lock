@@ -4182,10 +4182,10 @@ globule@^1.0.0:
     lodash "~4.17.10"
     minimatch "~3.0.2"
 
-goshare-client@^1.1.1:
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/goshare-client/-/goshare-client-1.1.1.tgz#e73e958e3bcb2cb04fdad7f116ee2186d68ddc3e"
-  integrity sha512-c9dQEL6Xa6pGQCDGxQCrB648UaOyZq7BVWME5bk0FCdwf1LGSs3Dn83ORRtffEXMZ/EKTDBMv3EXNIAF6MPNLg==
+goshare-client@^1.1.7:
+  version "1.1.7"
+  resolved "https://registry.yarnpkg.com/goshare-client/-/goshare-client-1.1.7.tgz#b388f74e16a1d0fce299f46a1735a47978dd836d"
+  integrity sha512-v2ruVYyYJ+um6wp3eQuX1gdwHxRonNbphsvMODQpwjSFDnib2jpJELfWAXJg+ixiQHvuyXvdHh4ELw7pQwgP1A==
   dependencies:
     axios "^0.19.0"
     jsonwebtoken "^8.5.1"

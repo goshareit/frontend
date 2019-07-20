@@ -27,10 +27,10 @@ export default {
   /*
    ** Plugins to load before mounting the App
    */
-  plugins: [{
-    src: '~/plugins/goshare-client',
-    mode: 'client'
-  }],
+  plugins: [
+    '~/plugins/goshare-client',
+    '~/plugins/session-handler'
+  ],
   /*
    ** Nuxt.js modules
    */

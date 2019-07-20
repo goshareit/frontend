@@ -24,7 +24,7 @@ import UserNav from '../components/UserNav'
 export default {
   components: { GuestNav, UserNav },
   computed: mapState({
-    isAuthenticated: state => state.isAuthenticated
+    isAuthenticated: state => state.user.isAuthenticated
   })
 }
 </script>

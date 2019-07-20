@@ -202,7 +202,7 @@ export default {
           return
         }
 
-        this.$router.replace({ path: '/' })
+        this.$router.push({ path: '/login' })
       })
     }
   }

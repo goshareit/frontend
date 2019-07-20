@@ -10,7 +10,7 @@
       <b-dropdown-item :to="'/room/' + username">
         My Room
       </b-dropdown-item>
-      <b-dropdown-item href="#">
+      <b-dropdown-item href="#" @click.prevent="signOut()">
         Sign Out
       </b-dropdown-item>
     </b-nav-item-dropdown>
@@ -22,7 +22,26 @@ export default {
   name: 'UserNav',
   data() {
     return {
-      username: 'Something'
+      username: ''
+    }
+  },
+  created() {
+    this.$store.dispatch('user/readSelfRequest')
+      .then((resp) => {
+        if (resp.status === 200) {
+          this.username = resp.data.username
+        }
+      })
+  },
+  methods: {
+    signOut() {
+      this.$store.dispatch('user/signOutRequest')
+        .then((resp) => {
+          if (resp.state) {
+            this.$store.dispatch('user/revokeSession')
+              .then(() => this.$router.go())
+          }
+        })
     }
   }
 }
