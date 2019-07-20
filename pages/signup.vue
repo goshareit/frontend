@@ -185,13 +185,13 @@ export default {
       this.emailClash = false
     },
 
-    handleSignUp() {
+    async handleSignUp() {
       if (!this.usernameOk) return
       if (!this.passwordOk) return
       if (!this.passwordConfirmationOk) return
       if (!this.emailOk) return
 
-      this.$store.dispatch('user/signUpRequest', {
+      await this.$store.dispatch('user/signUpRequest', {
         username: this.username,
         password: this.password,
         confirmation: this.passwordConfirmation,

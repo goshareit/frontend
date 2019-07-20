@@ -115,15 +115,15 @@ export default {
       this.invalidPassword = false
       this.couldNotCreateSession = false
     },
-    handleLogIn() {
+    async handleLogIn() {
       if (!this.usernameOk || !this.passwordOk) return
 
       this.clearIssues()
 
-      this.$store.dispatch('user/logInRequest', {
+      await this.$store.dispatch('user/logInRequest', {
         username: this.username,
         password: this.password
-      }).then((resp) => {
+      }).then(async (resp) => {
         switch (resp.status) {
           case 404:
             this.userNotFound = true
@@ -136,12 +136,12 @@ export default {
             return
         }
 
-        this.$store.dispatch('user/unwrapSessionJws', {
+        await this.$store.dispatch('user/unwrapSessionJws', {
           jws: resp.data
         }).then((unwrapped) => {
           this.$cookies.set('userId', unwrapped.sub)
           this.$cookies.set('sessionToken', unwrapped.token)
-          this.$router.replace({ path: '/' }, () => location.reload())
+          location.replace('/')
         })
       })
     }

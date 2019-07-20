@@ -18,27 +18,21 @@
 </template>
 
 <script>
+import { mapState } from 'vuex'
+
 export default {
   name: 'UserNav',
-  data() {
-    return {
-      username: ''
-    }
-  },
-  created() {
-    this.$store.dispatch('user/readSelfRequest')
-      .then((resp) => {
-        if (resp.status === 200) {
-          this.username = resp.data.username
-        }
-      })
+  computed: {
+    ...mapState({
+      username: state => state.user.username
+    })
   },
   methods: {
-    signOut() {
-      this.$store.dispatch('user/signOutRequest')
-        .then((resp) => {
+    async signOut() {
+      await this.$store.dispatch('user/signOutRequest')
+        .then(async (resp) => {
           if (resp.state) {
-            this.$store.dispatch('user/revokeSession')
+            await this.$store.dispatch('user/revokeSession')
               .then(() => this.$router.go())
           }
         })

@@ -1,3 +1,5 @@
 export default () => ({
-  isAuthenticated: false
+  isAuthenticated: false,
+  username: '',
+  email: ''
 })
