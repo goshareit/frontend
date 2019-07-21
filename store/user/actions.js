@@ -81,7 +81,7 @@ export default {
     const session = this.$getSession()
     if (_.isEmpty(session)) return
     return this.$gsClient().user()
-      .update(session.userId, session.sessionToken, {
+      .update(session.userId, session.sessionToken, payload.currentPassword, {
         username: payload.username,
         password: payload.password,
         email: payload.email
@@ -98,14 +98,16 @@ export default {
       })
   },
 
-  deleteUserRequest({ dispatch }) {
+  deleteUserRequest({ dispatch }, payload) {
     const session = this.$getSession()
     if (_.isEmpty(session)) return
-    return this.$gsClient().user().delete(session.userId, session.sessionToken)
+    return this.$gsClient().user().delete(session.userId, session.sessionToken, payload.currentPassword)
       .then((resp) => {
         if (resp.state) {
           dispatch('revokeSession')
         }
+
+        return resp
       })
   }
 }

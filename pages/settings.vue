@@ -1,11 +1,14 @@
 <template>
   <div>
     <b-card no-body>
-      <b-tabs pills card vertical @input="clearUpdateSuccess">
+      <b-tabs pills card vertical @input="clearEverything">
         <b-tab title="User Information" active>
           <b-card-text>
             <div v-if="success" class="success">
               <p>Your data has been updated.</p>
+            </div>
+            <div v-else-if="issues.invalidCurrentPassword">
+              <p>Your current password is incorrect. Please correct it.</p>
             </div>
             <h2>Change your User Information</h2>
             <b-form @submit.prevent="changeUserInformation()">
@@ -67,7 +70,32 @@
                   </p>
                 </b-form-invalid-feedback>
               </b-form-group>
-
+              <hr>
+              <b-form-group
+                id="current-password-input-group-update-form"
+                label="Current Password:"
+                label-for="current-password-input-update-form"
+                description="Type your current password, so we know it's really you"
+              >
+                <b-form-input
+                  id="current-password-input-update-form"
+                  v-model="currentPassword"
+                  :state="currentPasswordOk"
+                  type="password"
+                  required
+                  placeholder="Enter Password"
+                  @change="clearInvalidCurrentPasswordData"
+                />
+                <b-form-invalid-feedback :state="currentPasswordOk">
+                  <p v-if="currentPasswordTooShort">
+                    Your password must be at least 8 characters long.
+                  </p>
+                  <p v-else-if="currentPasswordTooLong">
+                    Your password cannot be longer than 71 characters.
+                  </p>
+                </b-form-invalid-feedback>
+              </b-form-group>
+              <hr>
               <b-button type="submit" variant="info" block>
                 Update Information
               </b-button>
@@ -76,6 +104,9 @@
         </b-tab>
         <b-tab title="Change Password">
           <b-card-text>
+            <div v-if="issues.invalidCurrentPassword">
+              <p>Your current password is incorrect. Please correct it.</p>
+            </div>
             <h2>Change your Password</h2>
             <b-form @submit.prevent="changePassword()">
               <b-form-group
@@ -122,9 +153,33 @@
                   </p>
                 </b-form-invalid-feedback>
               </b-form-group>
-
+              <hr>
+              <b-form-group
+                id="current-password-input-group-change-password-form"
+                label="Current Password:"
+                label-for="current-password-input-change-password-form"
+                description="Type your current password, so we know it's really you"
+              >
+                <b-form-input
+                  id="current-password-input-change-password-form"
+                  v-model="currentPassword"
+                  :state="currentPasswordOk"
+                  type="password"
+                  required
+                  placeholder="Enter Password"
+                  @change="clearInvalidCurrentPasswordData"
+                />
+                <b-form-invalid-feedback :state="currentPasswordOk">
+                  <p v-if="currentPasswordTooShort">
+                    Your password must be at least 8 characters long.
+                  </p>
+                  <p v-else-if="currentPasswordTooLong">
+                    Your password cannot be longer than 71 characters.
+                  </p>
+                </b-form-invalid-feedback>
+              </b-form-group>
+              <hr>
               <p><strong>Note:</strong> You will be logged out after changing your password, at which point you may log back in with your new password.</p>
-
               <b-button type="submit" block variant="info">
                 Change Password
               </b-button>
@@ -145,8 +200,37 @@
       </b-tabs>
     </b-card>
 
-    <b-modal id="confirm-account-deletion" title="Really delete your account?" variant="danger" @ok="deleteAccount()">
+    <b-modal id="confirm-account-deletion" title="Really delete your account?" variant="danger" @ok.prevent="deleteAccount()">
+      <div v-if="issues.invalidCurrentPassword">
+        <p>Your current password is incorrect. Please correct it.</p>
+      </div>
       <p>Just remember, by clicking <strong>OK</strong>, you are permanently erasing your data on GoShare. You will have to make a new account if you ever want to come back.</p>
+      <b-form @submit.stop.prevent>
+        <b-form-group
+          id="current-password-input-group-update-form"
+          label="Current Password:"
+          label-for="current-password-input-update-form"
+          description="Type your current password, so we know it's really you"
+        >
+          <b-form-input
+            id="current-password-input-update-form"
+            v-model="currentPassword"
+            :state="currentPasswordOk"
+            type="password"
+            required
+            placeholder="Enter Password"
+            @change="clearInvalidCurrentPasswordData"
+          />
+          <b-form-invalid-feedback :state="currentPasswordOk">
+            <p v-if="currentPasswordTooShort">
+              Your password must be at least 8 characters long.
+            </p>
+            <p v-else-if="currentPasswordTooLong">
+              Your password cannot be longer than 71 characters.
+            </p>
+          </b-form-invalid-feedback>
+        </b-form-group>
+      </b-form>
     </b-modal>
   </div>
 </template>
@@ -155,10 +239,11 @@
 import { mapState } from 'vuex'
 import UsernameMixin from '../mixins/username-mixin'
 import PasswordWithConfirmationMixin from '../mixins/password-with-confirmation-mixin'
+import CurrentPasswordMixin from '../mixins/current-password-mixin'
 import EmailMixin from '../mixins/email-mixin'
 
 export default {
-  mixins: [UsernameMixin, PasswordWithConfirmationMixin, EmailMixin],
+  mixins: [UsernameMixin, PasswordWithConfirmationMixin, CurrentPasswordMixin, EmailMixin],
   middleware: 'authenticated',
   data() {
     return {
@@ -184,8 +269,18 @@ export default {
     })
   },
   methods: {
-    clearUpdateSuccess() {
+    clearEverything() {
+      this.clearLocalState()
+      this.resetInputs()
+    },
+
+    clearSuccessData() {
       this.success = false
+    },
+
+    clearLocalState() {
+      this.clearSuccessData()
+      this.clearInvalidCurrentPasswordData()
     },
 
     resetInputs() {
@@ -193,39 +288,59 @@ export default {
       this.email = ''
       this.password = ''
       this.passwordConfirmation = ''
+      this.currentPassword = ''
     },
 
     async changeUserInformation() {
-      if (!this.newUsernameOk && !this.newEmailOk) return
+      if (!this.newUsernameOk && !this.newEmailOk && !this.currentPasswordOk) return
 
       await this.$store.dispatch('user/userUpdateRequest', {
+        currentPassword: this.currentPassword,
         username: this.username,
         email: this.email
       }).then((resp) => {
         if (resp.status === 200) {
           this.success = true
           this.resetInputs()
+        } else if (resp.status === 401) {
+          this.issues.invalidCurrentPassword = true
         }
       })
     },
 
     async changePassword() {
-      if (!this.passwordOk && !this.passwordConfirmationOk()) return
+      if (!this.passwordOk && !this.passwordConfirmationOk && !this.currentPasswordOk) return
 
       await this.$store.dispatch('user/userUpdateRequest', {
+        currentPassword: this.currentPassword,
         password: this.password
-      }).then(async () => {
-        await this.$store.dispatch('user/signOutRequest')
-          .then(() => this.$router.replace({ path: '/login' }))
+      }).then(async (resp) => {
+        if (resp.status === 200) {
+          await this.$store.dispatch('user/signOutRequest')
+            .then(() => {
+              this.resetInputs()
+              this.$router.replace({ path: '/login' })
+            })
+        } else if (resp.status === 401) {
+          this.issues.invalidCurrentPassword = true
+        }
       })
     },
 
     async deleteAccount() {
-      await this.$store.dispatch('user/deleteUserRequest')
-        .then(() => {
+      if (!this.currentPasswordOk) return
+
+      await this.$store.dispatch('user/deleteUserRequest', {
+        currentPassword: this.currentPassword
+      }).then((resp) => {
+        if (resp.status === 200) {
           this.$bvModal.hide('confirm-account-deletion')
+          this.resetInputs()
           this.$router.replace({ path: '/' })
-        })
+        } else if (resp.status === 401) {
+          this.issues.invalidCurrentPassword = true
+        }
+      })
     }
   }
 }
