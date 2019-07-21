@@ -51,6 +51,10 @@ export default {
      ** You can extend webpack config here
      */
     extend(config, ctx) {
+      if (ctx.isDev) {
+        config.devtool = ctx.isClient ? 'eval-source-map' : 'inline-source-map'
+      }
+
       if (ctx.isDev && ctx.isClient) {
         config.module.rules.push({
           enforce: 'pre',

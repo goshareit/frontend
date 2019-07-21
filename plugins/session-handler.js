@@ -12,6 +12,11 @@ export default ({ app }, inject) => {
     }
   })
 
+  inject('setSession', (userId, sessionToken) => {
+    app.$cookies.set('userId', userId)
+    app.$cookies.set('sessionToken', sessionToken)
+  })
+
   inject('killSession', () => {
     app.$cookies.remove('userId')
     app.$cookies.remove('sessionToken')

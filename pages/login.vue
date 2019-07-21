@@ -1,13 +1,13 @@
 <template>
   <div>
     <div v-if="thereIsAnIssue" class="error">
-      <p v-if="userNotFound" class="error">
-        A user with those credentials was not found. Please try again.
+      <p v-if="issues.userNotFound">
+        That username doesn't appear to exist. Are you sure you typed it correctly?
       </p>
-      <p v-else-if="invalidPassword" class="error">
+      <p v-else-if="issues.invalidPassword">
         You have entered the incorrect password. Please try again.
       </p>
-      <p v-else-if="couldNotCreateSession" class="error">
+      <p v-else-if="issues.couldNotCreateSession">
         The server could not create a session. Please try again later.
       </p>
     </div>
@@ -71,49 +71,31 @@
 </template>
 
 <script>
+import UsernameMixin from '../mixins/username-mixin'
+import PasswordMixin from '../mixins/password-mixin'
+
 export default {
+  mixins: [UsernameMixin, PasswordMixin],
+  middleware: 'unauthenticated',
   data() {
     return {
-      username: '',
-      password: '',
-      userNotFound: false,
-      invalidPassword: false,
-      couldNotCreateSession: false
+      issues: {
+        userNotFound: false,
+        invalidPassword: false,
+        couldNotCreateSession: false
+      }
     }
   },
   computed: {
-    usernameIsValidForm() {
-      return /^[a-zA-Z0-9]+$/.test(this.username)
-    },
-    usernameTooShort() {
-      return this.username.length < 4
-    },
-    usernameTooLong() {
-      return this.username.length > 24
-    },
-    usernameOk() {
-      if (this.username.length === 0) return null
-      return this.usernameIsValidForm && !this.usernameTooShort && !this.usernameTooLong
-    },
-    passwordTooShort() {
-      return this.password.length < 8
-    },
-    passwordTooLong() {
-      return this.password.length > 71
-    },
-    passwordOk() {
-      if (this.password.length === 0) return null
-      return !this.passwordTooShort && !this.passwordTooLong
-    },
     thereIsAnIssue() {
-      return this.userNotFound || this.invalidPassword || this.couldNotCreateSession
+      return this.issues.userNotFound || this.issues.invalidPassword || this.issues.couldNotCreateSession
     }
   },
   methods: {
     clearIssues() {
-      this.userNotFound = false
-      this.invalidPassword = false
-      this.couldNotCreateSession = false
+      this.issues.userNotFound = false
+      this.issues.invalidPassword = false
+      this.issues.couldNotCreateSession = false
     },
     async handleLogIn() {
       if (!this.usernameOk || !this.passwordOk) return
@@ -126,23 +108,22 @@ export default {
       }).then(async (resp) => {
         switch (resp.status) {
           case 404:
-            this.userNotFound = true
+            this.issues.userNotFound = true
             return
           case 401:
-            this.invalidPassword = true
+            this.issues.invalidPassword = true
             return
           case 500:
-            this.couldNotCreateSession = true
+            this.issues.couldNotCreateSession = true
             return
         }
 
-        await this.$store.dispatch('user/unwrapSessionJws', {
-          jws: resp.data
-        }).then((unwrapped) => {
-          this.$cookies.set('userId', unwrapped.sub)
-          this.$cookies.set('sessionToken', unwrapped.token)
-          location.replace('/')
-        })
+        await this.$store.dispatch('user/unwrapSessionJws', { jws: resp.data })
+          .then(async (unwrapped) => {
+            this.$setSession(unwrapped.sub, unwrapped.token)
+            await this.$store.dispatch('user/loadSession')
+            this.$router.replace({ path: '/' })
+          })
       })
     }
   }

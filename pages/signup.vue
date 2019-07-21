@@ -9,7 +9,6 @@
       >
         <b-form-input
           id="username-input"
-          ref="username"
           v-model="username"
           :state="usernameOk"
           required
@@ -26,7 +25,7 @@
           <p v-else-if="usernameTooLong">
             Your username cannot be longer than 24 characters.
           </p>
-          <p v-else-if="usernameClash">
+          <p v-else-if="issues.usernameExists">
             This username already exists. Please try a different one.
           </p>
         </b-form-invalid-feedback>
@@ -40,7 +39,6 @@
       >
         <b-form-input
           id="password-input"
-          ref="password"
           v-model="password"
           :state="passwordOk"
           type="password"
@@ -65,7 +63,6 @@
       >
         <b-form-input
           id="password-confirm-input"
-          ref="passwordConfirmation"
           v-model="passwordConfirmation"
           :state="passwordConfirmationOk"
           type="password"
@@ -87,19 +84,18 @@
       >
         <b-form-input
           id="email-input"
-          ref="email"
           v-model="email"
           :state="emailOk"
           type="email"
           required
           placeholder="Enter Email"
-          @change="resetEmailClash()"
+          @change="checkEmail()"
         />
         <b-form-invalid-feedback :state="emailOk">
           <p v-if="!emailIsValidForm">
             That doesn't look like a real email address.
           </p>
-          <p v-else-if="emailClash">
+          <p v-else-if="issues.emailExists">
             This email is already associated with another user. Please use a different one.
           </p>
         </b-form-invalid-feedback>
@@ -113,76 +109,17 @@
 </template>
 
 <script>
+import UsernameMixin from '../mixins/username-mixin'
+import PasswordWithConfirmationMixin from '../mixins/password-with-confirmation-mixin'
+import EmailMixin from '../mixins/email-mixin'
+
 export default {
-  data() {
-    return {
-      username: '',
-      usernameClash: false,
-      password: '',
-      passwordConfirmation: '',
-      email: '',
-      emailClash: false
-    }
-  },
-  computed: {
-    usernameIsValidForm() {
-      return /^[a-zA-Z0-9]+$/.test(this.username)
-    },
-    usernameTooShort() {
-      return this.username.length < 4
-    },
-    usernameTooLong() {
-      return this.username.length > 24
-    },
-    usernameOk() {
-      if (this.username.length === 0) return null
-      return this.usernameIsValidForm && !this.usernameTooShort && !this.usernameTooLong && !this.usernameClash
-    },
-    passwordsMatch() {
-      return this.password === this.passwordConfirmation
-    },
-    passwordTooShort() {
-      return this.password.length < 8
-    },
-    passwordTooLong() {
-      return this.password.length > 71
-    },
-    passwordOk() {
-      if (this.password.length === 0) return null
-      return !this.passwordTooShort && !this.passwordTooLong
-    },
-    passwordConfirmationOk() {
-      if (this.passwordConfirmation.length === 0) return null
-      return this.passwordsMatch
-    },
-    emailIsValidForm() {
-      return /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(this.email)
-    },
-    emailTooLong() {
-      return this.email.length > 120
-    },
-    emailOk() {
-      if (this.email.length === 0) return null
-      return this.emailIsValidForm && !this.emailTooLong && !this.emailClash
-    }
-  },
+  mixins: [UsernameMixin, PasswordWithConfirmationMixin, EmailMixin],
+  middleware: 'unauthenticated',
   methods: {
-    checkUsername() {
-      this.usernameClash = false
-
-      if (!this.usernameOk) {
-        return
-      }
-
-      this.$store.dispatch('user/usernameExistsRequest', { username: this.username })
-        .then(resp => resp.state)
-        .then((state) => {
-          this.usernameClash = state
-        })
-    },
-
-    resetEmailClash() {
-      this.emailClash = false
+    clearIssues() {
+      this.issues.usernameExists = false
+      this.issues.emailExists = false
     },
 
     async handleSignUp() {
@@ -191,18 +128,16 @@ export default {
       if (!this.passwordConfirmationOk) return
       if (!this.emailOk) return
 
+      this.clearIssues()
+
       await this.$store.dispatch('user/signUpRequest', {
         username: this.username,
         password: this.password,
         confirmation: this.passwordConfirmation,
         email: this.email
       }).then((resp) => {
-        if (resp.status === 409) {
-          this.emailClash = true
-          return
-        }
-
-        this.$router.push({ path: '/login' })
+        if (resp.status !== 200) return
+        this.$router.replace({ path: '/login' })
       })
     }
   }

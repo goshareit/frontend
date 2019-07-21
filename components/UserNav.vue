@@ -4,14 +4,11 @@
       <template slot="button-content">
         <em>{{ username }}</em>
       </template>
-      <b-dropdown-item :to="'/user/' + username">
-        My Profile
+      <b-dropdown-item to="/settings">
+        Settings
       </b-dropdown-item>
-      <b-dropdown-item :to="'/room/' + username">
-        My Room
-      </b-dropdown-item>
-      <b-dropdown-item href="#" @click.prevent="signOut()">
-        Sign Out
+      <b-dropdown-item href="#" @click.prevent="logOut()">
+        Log Out
       </b-dropdown-item>
     </b-nav-item-dropdown>
   </b-navbar-nav>
@@ -28,14 +25,9 @@ export default {
     })
   },
   methods: {
-    async signOut() {
+    async logOut() {
       await this.$store.dispatch('user/signOutRequest')
-        .then(async (resp) => {
-          if (resp.state) {
-            await this.$store.dispatch('user/revokeSession')
-              .then(() => this.$router.go())
-          }
-        })
+        .then(() => this.$router.replace({ path: '/' }))
     }
   }
 }

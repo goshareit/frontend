@@ -9,6 +9,7 @@
     "lint": "eslint --ext .js,.vue --ignore-path .gitignore .",
     "precommit": "yarn lint",
     "dev": "nuxt",
+    "debug": "nodemon --inspect node_modules/.bin/nuxt",
     "build": "nuxt build",
     "start": "nuxt start",
     "generate": "nuxt generate"
@@ -18,7 +19,7 @@
     "bootstrap": "^4.1.3",
     "bootstrap-vue": "^2.0.0-rc.11",
     "cookie-universal-nuxt": "^2.0.16",
-    "goshare-client": "^1.1.7",
+    "goshare-client": "^1.3.0",
     "lodash": "^4.17.14",
     "nuxt": "^2.0.0"
   },
