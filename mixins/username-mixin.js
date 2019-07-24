@@ -24,7 +24,7 @@ export default {
   },
   methods: {
     clearUsernameExists() {
-      this.usernameExists = false
+      this.issues.usernameExists = false
     },
     checkUsername() {
       this.clearUsernameExists()

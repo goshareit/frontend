@@ -122,7 +122,7 @@ export default {
           .then(async (unwrapped) => {
             this.$setSession(unwrapped.sub, unwrapped.token)
             await this.$store.dispatch('user/loadSession')
-            this.$router.replace({ path: '/' })
+            this.$router.replace({ path: '/dashboard' })
           })
       })
     }

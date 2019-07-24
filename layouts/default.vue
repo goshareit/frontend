@@ -1,14 +1,12 @@
 <template>
   <div>
     <b-navbar toggleable="lg" type="dark" variant="dark">
-      <b-navbar-brand to="/">
+      <b-navbar-brand :to="isAuthenticated ? '/dashboard' : '/'">
         GoShare
       </b-navbar-brand>
       <b-navbar-toggle target="nav-collapse" />
-      <b-collapse id="nav-collapse" is-nav>
-        <UserNav v-if="isAuthenticated" />
-        <GuestNav v-else />
-      </b-collapse>
+      <UserNav v-if="isAuthenticated" />
+      <GuestNav v-else />
     </b-navbar>
     <b-container>
       <nuxt />

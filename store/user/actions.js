@@ -36,23 +36,14 @@ export default {
       })
   },
 
-  checkSession() {
-    const session = this.$getSession()
-    if (session.userId && session.sessionToken) {
-      return this.$gsClient().session()
-        .sessionIsValid(session.userId, session.sessionToken)
-    }
-  },
-
   async loadSession({ dispatch, commit }) {
-    await dispatch('checkSession')
+    await dispatch('readSelfRequest')
       .then(async (resp) => {
         if (!resp) return
-        if (resp.state) {
+        if (resp.status === 200) {
           commit('updateIsAuthenticated', true)
-          await dispatch('readSelfRequest')
         } else {
-          dispatch('revokeSession')
+          await dispatch('revokeSession')
         }
       })
   },
@@ -62,10 +53,10 @@ export default {
     commit('updateIsAuthenticated', false)
   },
 
-  async readSelfRequest({ commit }) {
+  readSelfRequest({ commit }) {
     const session = this.$getSession()
     if (_.isEmpty(session)) return
-    await this.$gsClient().user()
+    return this.$gsClient().user()
       .readSelf(session.userId, session.sessionToken)
       .then((resp) => {
         if (resp.status === 200) {
@@ -74,6 +65,7 @@ export default {
             email: resp.data.email
           })
         }
+        return resp
       })
   },
 
