@@ -21,4 +21,8 @@ export default ({ app }, inject) => {
     app.$cookies.remove('userId')
     app.$cookies.remove('sessionToken')
   })
+
+  inject('unwrapJws', (jws) => {
+    return app.$gsClient().jws().read(jws)
+  })
 }

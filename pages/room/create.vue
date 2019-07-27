@@ -57,85 +57,36 @@
 </template>
 
 <script>
-import _ from 'lodash'
+import { mapGetters } from 'vuex'
+import TopicMixin from '../../mixins/topic-mixin'
+import RoomNameMixin from '../../mixins/room-name-mixin'
 
 export default {
   middleware: 'authenticated',
+  mixins: [TopicMixin, RoomNameMixin],
   data() {
     return {
-      topic: null,
-      name: '',
       secret: false
     }
   },
   computed: {
-    topicOk() {
-      if (this.topic == null) return
-      return Number.isInteger(this.topic) && _.find(this.topics, t => t.value === this.topic) !== undefined
-    },
-    nameIsValidForm() {
-      return /^[a-zA-Z0-9]+$/.test(this.name)
-    },
-    nameTooShort() {
-      return this.name.length < 5
-    },
-    nameTooLong() {
-      return this.name.length > 24
-    },
-    nameOk() {
-      if (this.name.length === 0) return null
-      return this.nameIsValidForm && !this.nameTooShort && !this.nameTooLong
-    },
     ok() {
       return this.topicOk && this.nameOk
-    }
-  },
-  async asyncData({ store }) {
-    const topics = await store.dispatch('room/loadRoomTopicsRequest')
-      .then((resp) => {
-        if (resp.status === 200) {
-          return {
-            topics: _.concat(
-              [{
-                value: null,
-                text: 'Choose an Option',
-                disabled: true
-              }],
-              _.map(resp.data, (entry) => {
-                return {
-                  value: entry.id,
-                  text: entry.name
-                }
-              })
-            )
-          }
-        }
-      })
-
-    const rooms = await store.dispatch('room/readOwnedRoomsRequest')
-      .then((resp) => {
-        if (resp.status === 200) {
-          return {
-            rooms: resp.data
-          }
-        }
-      })
-
-    return {
-      ...topics,
-      ...rooms
-    }
+    },
+    ...mapGetters({
+      ownedRoomCount: 'room/ownedRoomCount'
+    })
   },
   methods: {
     createRoom() {
       if (!this.ok) return
-
       this.$store.dispatch('room/createRoomRequest', {
         topic: this.topic,
         name: this.name,
         secret: this.secret
       }).then((resp) => {
         if (resp.status === 200) {
+          this.$store.commit('room/pushOwnedRoom', resp.data)
           this.$router.replace('/dashboard')
         }
       })

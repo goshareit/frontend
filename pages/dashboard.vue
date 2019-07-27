@@ -6,38 +6,47 @@
       Create new Room
     </b-button>
 
-    <h1>Your Rooms</h1>
+    <h1>Your Rooms ({{ ownedRoomCount }})</h1>
     <hr>
-    <div v-for="room in rooms" :key="room.id">
+    <div v-for="room in ownedRooms" :key="room.id">
       <nuxt-link :to="'/room/' + room.id">
         {{ room.name + ' (' + (room.secret ? 'secret' : 'public') + ')' }}
       </nuxt-link>
+
+      <b-button variant="danger" @click="$bvModal.show('delete-room-' + room.id)">
+        Delete
+      </b-button>
+
+      <b-modal :id="'delete-room-' + room.id" title="Really delete this room?" @ok="deleteRoom(room.id)">
+        <p>If you really want to delete <strong>{{ room.name }}</strong>, click OK.</p>
+      </b-modal>
     </div>
   </div>
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState, mapGetters } from 'vuex'
 
 export default {
   middleware: 'authenticated',
-  computed: mapState({
-    username: state => state.user.username
-  }),
-  asyncData({ store }) {
-    return store.dispatch('room/readOwnedRoomsRequest')
-      .then((resp) => {
-        if (resp.status === 200) {
-          return {
-            rooms: resp.data
-          }
-        }
-      })
+  computed: {
+    ...mapState({
+      username: state => state.user.username,
+      ownedRooms: state => state.room.owned,
+      memberRooms: state => state.room.member
+    }),
+    ...mapGetters({
+      ownedRoomCount: 'room/ownedRoomCount'
+    })
   },
   methods: {
-    createRoom() {
-      // eslint-disable-next-line no-console
-      console.log('wee woo wee woo')
+    deleteRoom(id) {
+      this.$store.dispatch('room/deleteRoomRequest', { id })
+        .then((resp) => {
+          if (resp.status === 200 && resp.state) {
+            this.$store.commit('room/deleteOwnedRoom', { id })
+          }
+        })
     }
   }
 }

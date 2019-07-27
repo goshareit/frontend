@@ -118,12 +118,10 @@ export default {
             return
         }
 
-        await this.$store.dispatch('user/unwrapSessionJws', { jws: resp.data })
-          .then(async (unwrapped) => {
-            this.$setSession(unwrapped.sub, unwrapped.token)
-            await this.$store.dispatch('user/loadSession')
-            this.$router.replace({ path: '/dashboard' })
-          })
+        const unwrapped = resp.unwrapped
+        this.$setSession(unwrapped.sub, unwrapped.token)
+        await this.$store.dispatch('user/hydrateState')
+        this.$router.replace({ path: '/dashboard' })
       })
     }
   }

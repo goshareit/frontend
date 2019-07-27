@@ -1,6 +1,32 @@
 import _ from 'lodash'
 
 export default {
+  async hydrateState({ dispatch, commit }) {
+    const self = await dispatch('readSelfRequest')
+      .then((resp) => {
+        if (_.isEmpty(resp)) return undefined
+        return resp.status === 200 ? resp.data : undefined
+      })
+
+    if (self !== undefined) {
+      commit('updateIsAuthenticated', true)
+
+      commit('updateUserData', {
+        username: self.username,
+        email: self.email
+      })
+    } else {
+      await dispatch('revokeSession')
+    }
+  },
+
+  readSelfRequest() {
+    const session = this.$getSession()
+    if (_.isEmpty(session)) return {}
+    return this.$gsClient().user()
+      .readSelf(session.userId, session.sessionToken)
+  },
+
   usernameExistsRequest({ dispatch }, payload) {
     return this.$gsClient().user()
       .usernameExists(payload.username)
@@ -19,10 +45,16 @@ export default {
   logInRequest({ dispatch }, payload) {
     return this.$gsClient().session()
       .logIn(payload.username, payload.password)
-  },
-
-  unwrapSessionJws({ dispatch }, payload) {
-    return this.$gsClient().jws().read(payload.jws)
+      .then((resp) => {
+        if (resp.status === 200) {
+          return {
+            ...resp,
+            unwrapped: this.$gsClient().jws().read(resp.data)
+          }
+        } else {
+          return resp
+        }
+      })
   },
 
   signOutRequest({ dispatch }) {
@@ -36,37 +68,9 @@ export default {
       })
   },
 
-  async loadSession({ dispatch, commit }) {
-    await dispatch('readSelfRequest')
-      .then(async (resp) => {
-        if (!resp) return
-        if (resp.status === 200) {
-          commit('updateIsAuthenticated', true)
-        } else {
-          await dispatch('revokeSession')
-        }
-      })
-  },
-
   revokeSession({ commit }) {
     this.$killSession()
     commit('updateIsAuthenticated', false)
-  },
-
-  readSelfRequest({ commit }) {
-    const session = this.$getSession()
-    if (_.isEmpty(session)) return
-    return this.$gsClient().user()
-      .readSelf(session.userId, session.sessionToken)
-      .then((resp) => {
-        if (resp.status === 200) {
-          commit('updateUserData', {
-            username: resp.data.username,
-            email: resp.data.email
-          })
-        }
-        return resp
-      })
   },
 
   userUpdateRequest({ commit }, payload) {
