@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <b-container>
     <div v-if="thereIsAnIssue" class="error">
       <p v-if="issues.userNotFound">
         That username doesn't appear to exist. Are you sure you typed it correctly?
@@ -67,7 +67,7 @@
         Log In!
       </b-button>
     </b-form>
-  </div>
+  </b-container>
 </template>
 
 <script>

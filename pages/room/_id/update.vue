@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <b-container>
     <b-form @submit.prevent="updateRoom()">
       <b-form-group
         id="topic-input-group"
@@ -55,7 +55,7 @@
         Update {{ nameOk ? '"' + room.name + '"' : '' }}
       </b-button>
     </b-form>
-  </div>
+  </b-container>
 </template>
 
 <script>

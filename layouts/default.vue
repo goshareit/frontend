@@ -8,9 +8,7 @@
       <UserNav v-if="isAuthenticated" />
       <GuestNav v-else />
     </b-navbar>
-    <b-container>
-      <nuxt />
-    </b-container>
+    <nuxt />
   </div>
 </template>
 

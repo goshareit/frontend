@@ -1,7 +1,7 @@
 <template>
-  <div>
+  <b-container>
     <h1>There is nothing here yet.</h1>
-  </div>
+  </b-container>
 </template>
 
 <script>

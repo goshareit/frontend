@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <b-container>
     <b-card no-body>
       <b-tabs pills card vertical @input="clearEverything">
         <b-tab title="User Information" active>
@@ -232,7 +232,7 @@
         </b-form-group>
       </b-form>
     </b-modal>
-  </div>
+  </b-container>
 </template>
 
 <script>

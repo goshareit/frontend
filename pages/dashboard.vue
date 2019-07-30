@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <b-container>
     <h1>Your Dashboard</h1>
     <hr>
     <b-button variant="info" block to="/room/create">
@@ -21,7 +21,7 @@
         <p>If you really want to delete <strong>{{ room.name }}</strong>, click OK.</p>
       </b-modal>
     </div>
-  </div>
+  </b-container>
 </template>
 
 <script>

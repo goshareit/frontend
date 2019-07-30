@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <b-container>
     <b-form @submit.prevent="handleSignUp()">
       <b-form-group
         id="username-input-group"
@@ -105,7 +105,7 @@
         Sign Up!
       </b-button>
     </b-form>
-  </div>
+  </b-container>
 </template>
 
 <script>
