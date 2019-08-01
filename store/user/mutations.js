@@ -4,6 +4,7 @@ export default {
   },
 
   updateUserData(state, values) {
+    state.uniqueId = values.uniqueId
     state.username = values.username
     state.email = values.email
   }

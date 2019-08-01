@@ -3,7 +3,7 @@ export default {
     return {
       username: '',
       issues: {
-        usernameExists: false
+        usernameExists: null
       }
     }
   },
@@ -19,12 +19,20 @@ export default {
     },
     usernameOk() {
       if (this.username.length === 0) return null
-      return this.usernameIsValidForm && !this.usernameTooShort && !this.usernameTooLong && !this.issues.usernameExists
+      return this.usernameIsValidForm && !this.usernameTooShort && !this.usernameTooLong
+    },
+    usernameOkAndDoesNotExist() {
+      if (this.issues.usernameExists === null) return null
+      return this.usernameOk && !this.issues.usernameExists
+    },
+    usernameOkAndDoesExist() {
+      if (this.issues.usernameExists === null) return null
+      return this.usernameOk && this.issues.usernameExists
     }
   },
   methods: {
     clearUsernameExists() {
-      this.issues.usernameExists = false
+      this.issues.usernameExists = null
     },
     checkUsername() {
       this.clearUsernameExists()

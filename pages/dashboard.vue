@@ -6,28 +6,34 @@
       Create new Room
     </b-button>
 
-    <h1>Your Rooms ({{ ownedRoomCount }})</h1>
+    <h1>Owned Rooms ({{ ownedRoomCount }})</h1>
     <hr>
     <div v-for="room in ownedRooms" :key="room.id">
       <nuxt-link :to="'/room/' + room.id">
         {{ room.name + ' (' + (room.secret ? 'secret' : 'public') + ')' }}
       </nuxt-link>
 
-      <b-button variant="danger" @click="$bvModal.show('delete-room-' + room.id)">
-        Delete
-      </b-button>
+      <DeleteRoomShard :room="room" />
+      <InviteUserShard :room="room" />
+    </div>
 
-      <b-modal :id="'delete-room-' + room.id" title="Really delete this room?" @ok="deleteRoom(room.id)">
-        <p>If you really want to delete <strong>{{ room.name }}</strong>, click OK.</p>
-      </b-modal>
+    <h1>Room Memberships ({{ memberRoomCount }})</h1>
+    <hr>
+    <div v-for="ctx in memberRooms" :key="ctx.room.id">
+      <nuxt-link :to="'/room/' + ctx.room.id">
+        {{ ctx.room.name }}
+      </nuxt-link>
     </div>
   </b-container>
 </template>
 
 <script>
 import { mapState, mapGetters } from 'vuex'
+import DeleteRoomShard from '../components/DeleteRoomShard'
+import InviteUserShard from '../components/InviteUserShard'
 
 export default {
+  components: { DeleteRoomShard, InviteUserShard },
   middleware: 'authenticated',
   computed: {
     ...mapState({
@@ -36,18 +42,9 @@ export default {
       memberRooms: state => state.room.member
     }),
     ...mapGetters({
-      ownedRoomCount: 'room/ownedRoomCount'
+      ownedRoomCount: 'room/ownedRoomCount',
+      memberRoomCount: 'room/memberRoomCount'
     })
-  },
-  methods: {
-    deleteRoom(id) {
-      this.$store.dispatch('room/deleteRoomRequest', { id })
-        .then((resp) => {
-          if (resp.status === 200 && resp.state) {
-            this.$store.commit('room/deleteOwnedRoom', { id })
-          }
-        })
-    }
   }
 }
 </script>

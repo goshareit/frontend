@@ -1,14 +1,24 @@
-<template>
+<template xmlns:v-video-player="http://www.w3.org/1999/xhtml">
   <b-container class="room" fluid>
     <b-row class="top">
-      <b-col cols="9" class="player">
-        <p>Room Id: {{ room.id }}</p>
-        <p>Room Name: {{ room.name }}</p>
-        <p>Room Owner: {{ room.ownerUniqueId }}</p>
-        <p>Room Secret?: {{ room.secret }}</p>
-        <p>Room Topic: {{ room.topic.name }} (#{{ room.topic.id }})</p>
+      <b-col cols="7" lg="9">
+        <div
+          v-video-player:roomVideoPlayer="playerData"
+          class="player"
+          @play="playerPlayed"
+          @pause="playerPaused"
+          @ended="playerEnded"
+          @loadeddata="playerLoadedData"
+          @waiting="playerWaiting"
+          @playing="playerPlaying"
+          @timeupdate="playerTimeUpdate"
+          @canplay="playerCanPlay"
+          @canplaythrough="playerCanPlayThrough"
+          @ready="playerReady"
+          @statechanged="playerStateChanged"
+        />
       </b-col>
-      <b-col cols="3" class="chatbox">
+      <b-col cols="5" lg="3" class="chatbox">
         <div id="messages">
           <div v-if="ws !== null">
             <div v-for="(entry, idx) in chatbox" :key="idx">
@@ -32,11 +42,18 @@
         </div>
       </b-col>
     </b-row>
-    <b-row class="bottom">
-      <b-col class="controls">
-        <p class="text-center">
-          Player controls will go here
-        </p>
+    <b-row>
+      <b-col class="bottom">
+        <b-nav>
+          <b-nav-item-dropdown
+            :text="room.name"
+            dropup
+          >
+            <b-dropdown-item v-if="isOwner" to="update" append>
+              Update Room
+            </b-dropdown-item>
+          </b-nav-item-dropdown>
+        </b-nav>
       </b-col>
     </b-row>
   </b-container>
@@ -50,12 +67,27 @@ export default {
     return {
       ws: null,
       chatInput: '',
-      chatbox: []
+      chatbox: [],
+      playerData: {
+        muted: true,
+        language: 'en',
+        playbackRates: [0.7, 1.0, 1.5, 2.0],
+        sources: [{
+          type: 'video/mp4',
+          src: 'https://cdn.theguardian.tv/webM/2015/07/20/150716YesMen_synd_768k_vp8.webm'
+        }]
+      }
     }
   },
-  computed: mapState({
-    username: state => state.user.username
-  }),
+  computed: {
+    isOwner() {
+      return this.uniqueId === this.room.ownerUniqueId
+    },
+    ...mapState({
+      uniqueId: state => state.user.uniqueId,
+      username: state => state.user.username
+    })
+  },
   asyncData({ store, params, error }) {
     const room = store.getters['room/getRoom'](params.id)
     if (room === undefined) {
@@ -98,9 +130,6 @@ export default {
               })
               break
           }
-          if (payload.type === 'CHAT') {
-
-          }
         }
 
         this.ws = ws
@@ -127,6 +156,74 @@ export default {
       if (this.ws !== null) {
         this.ws.send(payload)
       }
+    },
+    playerPlayed(playEvt) {
+      // eslint-disable-next-line no-console
+      console.log('played')
+      // eslint-disable-next-line no-console
+      console.log(playEvt)
+    },
+    playerPaused(pauseEvt) {
+      // eslint-disable-next-line no-console
+      console.log('paused')
+      // eslint-disable-next-line no-console
+      console.log(pauseEvt)
+    },
+    playerEnded(endedEvt) {
+      // eslint-disable-next-line no-console
+      console.log('ended')
+      // eslint-disable-next-line no-console
+      console.log(endedEvt)
+    },
+    playerLoadedData(loadedDataEvt) {
+      // eslint-disable-next-line no-console
+      console.log('loaded data')
+      // eslint-disable-next-line no-console
+      console.log(loadedDataEvt)
+    },
+    playerWaiting(waitingEvt) {
+      // eslint-disable-next-line no-console
+      console.log('waiting...')
+      // eslint-disable-next-line no-console
+      console.log(waitingEvt)
+    },
+    playerPlaying(playingEvt) {
+      // eslint-disable-next-line no-console
+      console.log('playing')
+      // eslint-disable-next-line no-console
+      console.log(playingEvt.state)
+      // eslint-disable-next-line no-console
+      console.log(playingEvt.cache_)
+    },
+    playerTimeUpdate(timeUpdateEvt) {
+      // eslint-disable-next-line no-console
+      console.log('time updated')
+      // eslint-disable-next-line no-console
+      console.log(timeUpdateEvt)
+    },
+    playerCanPlay(canPlayEvt) {
+      // eslint-disable-next-line no-console
+      console.log('can play')
+      // eslint-disable-next-line no-console
+      console.log(canPlayEvt)
+    },
+    playerCanPlayThrough(canPlayThroughEvt) {
+      // eslint-disable-next-line no-console
+      console.log('can play through')
+      // eslint-disable-next-line no-console
+      console.log(canPlayThroughEvt)
+    },
+    playerReady(readyEvt) {
+      // eslint-disable-next-line no-console
+      console.log('ready')
+      // eslint-disable-next-line no-console
+      console.log(readyEvt)
+    },
+    playerStateChanged(stateChangedEvt) {
+      // eslint-disable-next-line no-console
+      console.log('state changed')
+      // eslint-disable-next-line no-console
+      console.log(stateChangedEvt)
     }
   },
   beforeRouteLeave(to, from, next) {
@@ -147,18 +244,20 @@ export default {
     height: $pageHeight;
 
     .top {
-      border-bottom: 1px solid #000;
       flex: 1;
 
+      .player {
+        width: 100%;
+        height: 100%;
+      }
+
       .chatbox {
-        display: flex;
-        flex-flow: column;
+        max-height: $pageHeight;
         border-left: 1px solid black;
         padding: 0;
         position: relative;
 
         #messages {
-          flex: 1;
           max-height: calc(#{$topHeight} + 40px);
           width: 100%;
           position: absolute;
@@ -187,6 +286,7 @@ export default {
 
     .bottom {
       flex: 0 1 auto;
+      border-top: 1px solid #000
     }
   }
 </style>

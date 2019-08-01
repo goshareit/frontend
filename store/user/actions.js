@@ -12,6 +12,7 @@ export default {
       commit('updateIsAuthenticated', true)
 
       commit('updateUserData', {
+        uniqueId: self.uniqueId,
         username: self.username,
         email: self.email
       })

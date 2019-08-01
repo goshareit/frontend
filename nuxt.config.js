@@ -23,13 +23,16 @@ export default {
   /*
    ** Global CSS
    */
-  css: [],
+  css: [
+    'video.js/dist/video-js.css'
+  ],
   /*
    ** Plugins to load before mounting the App
    */
   plugins: [
     '~/plugins/goshare-client',
-    '~/plugins/session-handler'
+    '~/plugins/session-handler',
+    { src: '~/plugins/vue-video-player', ssr: false }
   ],
   /*
    ** Nuxt.js modules
@@ -39,7 +42,16 @@ export default {
     'bootstrap-vue/nuxt',
     '@nuxtjs/eslint-module',
     'cookie-universal-nuxt',
-    '@nuxtjs/dotenv'
+    '@nuxtjs/dotenv',
+    ['nuxt-fontawesome', {
+      component: 'fa',
+      imports: [
+        {
+          set: '@fortawesome/free-solid-svg-icons',
+          icons: ['fas']
+        }
+      ]
+    }]
   ],
   /*
    ** Build configuration

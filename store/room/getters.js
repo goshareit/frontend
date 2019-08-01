@@ -5,6 +5,10 @@ export default {
     return state.owned.length
   },
 
+  memberRoomCount(state) {
+    return state.member.length
+  },
+
   getRoom(state) {
     return (id) => {
       return _.find(
